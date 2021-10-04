@@ -10,8 +10,6 @@ spark = SparkSession \
     .appName("CarCount") \
     .getOrCreate()
 
-options = {'sep': ';'}
-schema = "targa INT, varco INT, corsia DOUBLE, timestamp TIMESTAMP, nazione STRING"
 
 # Stream
 
@@ -22,20 +20,14 @@ dfstream = spark \
     .option("subscribe", "quickstart-events") \
     .load()
 
+options = {'sep': ';'}
+schema = "targa INT, varco INT, corsia DOUBLE, timestamp TIMESTAMP, nazione STRING"
 
 dfstream = dfstream.selectExpr("CAST(value AS STRING)")
 datastream = dfstream.select(
     from_csv(col("value"), schema, options).alias("data")).select("data.*")
 
 
-
-num_cars = datastream.groupby("varco").count()
-
-""" num_cars.writeStream \
-    .format("console") \
-    .outputMode("complete") \
-    .start() \
-    .awaitTermination() """
 
 # Immette i tratti autostradali
 tratti = [(1, 27, 9), (2, 9, 26), (3, 26, 10), (4, 10, 18), (5, 18, 23),
@@ -48,6 +40,13 @@ tratti_schema = StructType([
 
 df_tratti = spark.createDataFrame(data=tratti, schema=tratti_schema).cache()
 
+# ultimi avvistamenti:  i record vengono ordinati per targa e viene mantenuto 
+#                       solo l'ultimo timestamp e tratto autostradale in cui 
+#                       si trova
+
+ultimi_avvistamenti = datastream.join(
+    df_tratti, datastream.varco == df_tratti.entrata, 'inner')
+ultimi_avvistamenti.groupBy("targa").agg({"timestamp":"max"})
 
 
 conteggio_entrate = datastream.join(
@@ -55,39 +54,12 @@ conteggio_entrate = datastream.join(
 
 conteggio_entrate = conteggio_entrate.withColumn("count",lit(1))
 
-query = conteggio_entrate.writeStream \
-    .format("console") \
-    .outputMode("append") \
-    .start() 
-
-query.awaitTermination()
-
-query.stop()
 
 conteggio_uscite = datastream.join(
     df_tratti, datastream.varco == df_tratti.uscita, 'inner') 
 conteggio_uscite = conteggio_uscite.withColumn("count",lit(-1))
 
-   # .select('id', 'uscita').withColumnRenamed('id','id_uscita')
-
-query = conteggio_uscite.writeStream \
-    .format("console") \
-    .outputMode("append") \
-    .start() 
-
-query.awaitTermination()
-
-query.stop()
 
 conteggio = conteggio_entrate.union(conteggio_uscite)
 conteggio = conteggio.groupby("tratto").agg({'count': 'sum'})
-
-query = conteggio.writeStream \
-    .format("console") \
-    .outputMode("complete") \
-    .start() 
-
-query.awaitTermination()
-
-query.stop()
 
