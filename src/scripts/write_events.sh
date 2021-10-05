@@ -20,7 +20,7 @@ while read -r line; do
         if [ $timestamp -ne $pre_timestamp ]; then
             delta=$((timestamp - pre_timestamp))
             
-            sleep $delta
+            sleep 0.1
             pre_timestamp=$timestamp
         fi
 

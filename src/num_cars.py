@@ -1,8 +1,8 @@
 
 from pyspark.sql import SparkSession
-from pyspark.sql.types import DoubleType, StructType, StructField
-from pyspark.sql.types import StringType, IntegerType, ArrayType
-from pyspark.sql.functions import split, col, from_json, from_csv, udf
+from pyspark.sql.types import StringType, StructType, StructField
+from pyspark.sql.types import IntegerType
+from pyspark.sql.functions import concat, split, col, from_csv, struct, to_json
 from pyspark.sql.functions import lit
 
 spark = SparkSession \
@@ -12,15 +12,14 @@ spark = SparkSession \
 
 
 # Stream
-
 dfstream = spark \
     .readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "192.168.1.11:9092") \
-    .option("subscribe", "quickstart-events") \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("subscribe", "autovelox") \
     .load()
 
-options = {'sep': ';'}
+options = {'sep': ','}
 schema = "targa INT, varco INT, corsia DOUBLE, timestamp TIMESTAMP, nazione STRING"
 
 dfstream = dfstream.selectExpr("CAST(value AS STRING)")
@@ -40,15 +39,6 @@ tratti_schema = StructType([
 
 df_tratti = spark.createDataFrame(data=tratti, schema=tratti_schema).cache()
 
-# ultimi avvistamenti:  i record vengono ordinati per targa e viene mantenuto 
-#                       solo l'ultimo timestamp e tratto autostradale in cui 
-#                       si trova
-
-ultimi_avvistamenti = datastream.join(
-    df_tratti, datastream.varco == df_tratti.entrata, 'inner')
-ultimi_avvistamenti.groupBy("targa").agg({"timestamp":"max"})
-
-
 conteggio_entrate = datastream.join(
     df_tratti, datastream.varco == df_tratti.entrata, 'inner') 
 
@@ -63,3 +53,25 @@ conteggio_uscite = conteggio_uscite.withColumn("count",lit(-1))
 conteggio = conteggio_entrate.union(conteggio_uscite)
 conteggio = conteggio.groupby("tratto").agg({'count': 'sum'})
 
+
+sink = conteggio.select(concat("tratto", lit(" "), "sum(count)", lit(" ")).alias("value")) \
+.writeStream \
+.format("kafka")\
+.outputMode("update") \
+.option("kafka.bootstrap.servers", "localhost:9092")\
+.option("topic", "risultati")\
+.option("checkpointLocation", "kafka_sink")\
+.start()
+
+sink.awaitTermination()
+
+
+'''
+query = sink = conteggio.select(concat("tratto", lit(" "), "sum(count)", lit(" ")).alias("value")) \
+.writeStream \
+.format("console")\
+.outputMode("update") \
+.start()
+
+query.awaitTermination()
+'''
