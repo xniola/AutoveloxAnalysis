@@ -19,18 +19,23 @@ dfstream = spark \
     .option("subscribe", "autovelox") \
     .load()
 
-options = {'sep': ','}
-schema = "targa INT, varco INT, corsia DOUBLE, timestamp TIMESTAMP, nazione STRING"
+dfstream = dfstream.selectExpr("CAST(value AS STRING)") \
+    .select(from_csv(col("value"), schema, options)
+            .alias("data")) \
+    .select("data.*")
 
-dfstream = dfstream.selectExpr("CAST(value AS STRING)")
-datastream = dfstream.select(
-    from_csv(col("value"), schema, options).alias("data")).select("data.*")
-
+in_stream = dfstream \
+    .select(col("targa"), col("varco"), col("corsia"), col("timestamp"), col("nazione")) \
+    .withColumnRenamed("targa", "in_targa") \
+    .withColumnRenamed("timestamp", "in_timestamp") \
+    .withWatermark("in_timestamp", "3 minutes")
 
 
 # Immette i tratti autostradali
 tratti = [(1, 27, 9), (2, 9, 26), (3, 26, 10), (4, 10, 18), (5, 18, 23),
-          (6, 23, 15), (7, 15, 5), (8, 5, 8), (9, 8, 3), (10, 3, 13)]
+          (6, 23, 15), (7, 15, 5), (8, 5, 8), (9, 8, 3), (10, 3, 13),
+          (11, 22, 1), (12, 1, 12), (13, 12, 25), (14, 25, 20), (15, 20, 2),
+          (16, 2, 16), (17, 16, 4), (18, 4, 21)]
 tratti_schema = StructType([
     StructField('tratto', IntegerType()),
     StructField('entrata', IntegerType()),
@@ -39,19 +44,19 @@ tratti_schema = StructType([
 
 df_tratti = spark.createDataFrame(data=tratti, schema=tratti_schema).cache()
 
-conteggio_entrate = datastream.join(
-    df_tratti, datastream.varco == df_tratti.entrata, 'inner') 
+# ultimi avvistamenti:  i record vengono ordinati per targa e viene mantenuto
+#                       solo l'ultimo timestamp e tratto autostradale in cui
+#                       si trova
 
-conteggio_entrate = conteggio_entrate.withColumn("count",lit(1))
-
-
-conteggio_uscite = datastream.join(
-    df_tratti, datastream.varco == df_tratti.uscita, 'inner') 
-conteggio_uscite = conteggio_uscite.withColumn("count",lit(-1))
-
-
-conteggio = conteggio_entrate.union(conteggio_uscite)
-conteggio = conteggio.groupby("tratto").agg({'count': 'sum'})
+ultimi_avvistamenti = dfstream.join(
+    df_tratti, dfstream.varco == df_tratti.entrata, 'inner') \
+    .groupBy("targa") \
+    .agg(max("timestamp"), count(lit(1)), first("tratto")) \
+    .orderBy('count(1)', ascending=False)
+# .withWatermark("timestamp", "3 minutes") \
+# .orderBy('timestamp', ascending=False)
+conteggio = ultimi_avvistamenti.groupBy("tratto").count()
+# stream-stream join
 
 
 sink = conteggio.select(concat("tratto", lit(" "), "sum(count)", lit(" ")).alias("value")) \
