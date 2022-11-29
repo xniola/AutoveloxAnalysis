@@ -1,1 +1,1 @@
-./write_events.sh | $HOME/Programmi/Kafka/bin/kafka-console-producer.sh --topic autovelox --bootstrap-server localhost:9092
+scripts/write_events.sh | $HOME/AnalisiAutovelox/kafka/bin/kafka-console-producer.sh --topic autovelox --bootstrap-server localhost:9092

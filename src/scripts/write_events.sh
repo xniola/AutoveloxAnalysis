@@ -1,6 +1,6 @@
 #!/bin/bash
 
-fname="../../data/feb2016/01.02.2016_cleaned.csv"
+fname="$HOME/AnalisiAutovelox/data/01.02.2016_cleaned.csv"
 day="2016-02-01"
 header=1
 timestamp_regex='[0-9]{1,2}:[0-9]{1,2}:[0-9]{1,2}'
@@ -20,7 +20,7 @@ while read -r line; do
         if [ $timestamp -ne $pre_timestamp ]; then
             delta=$((timestamp - pre_timestamp))
             
-            sleep 0.1
+            sleep 0.5
             pre_timestamp=$timestamp
         fi
 
