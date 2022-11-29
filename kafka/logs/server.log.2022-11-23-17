@@ -1,0 +1,2 @@
+[2022-11-23 17:41:12,538] INFO [LocalLog partition=ultimi-avvistamenti-0, dir=/tmp/kafka-logs] Rolled new log segment at offset 22218629 in 53 ms. (kafka.log.LocalLog)
+[2022-11-23 17:41:12,603] INFO [ProducerStateManager partition=ultimi-avvistamenti-0] Wrote producer snapshot at offset 22218629 with 0 producer ids in 47 ms. (kafka.log.ProducerStateManager)

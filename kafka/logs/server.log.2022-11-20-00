@@ -1,0 +1,2 @@
+[2022-11-21 09:21:21,841] INFO Expiring session 0x10000e0f2c70000, timeout of 18000ms exceeded (org.apache.zookeeper.server.ZooKeeperServer)
+[2022-11-21 09:21:22,169] INFO Invalid session 0x10000e0f2c70000 for client /127.0.0.1:36666, probably expired (org.apache.zookeeper.server.ZooKeeperServer)

@@ -1,0 +1,3 @@
+[2022-11-19 23:52:58,868] INFO Opening socket connection to server localhost/127.0.0.1:2181. (org.apache.zookeeper.ClientCnxn)
+[2022-11-19 23:52:58,874] INFO Socket connection established, initiating session, client: /127.0.0.1:36660, server: localhost/127.0.0.1:2181 (org.apache.zookeeper.ClientCnxn)
+[2022-11-19 23:52:58,880] INFO Session establishment complete on server localhost/127.0.0.1:2181, session id = 0x10000e0f2c70000, negotiated timeout = 18000 (org.apache.zookeeper.ClientCnxn)

@@ -1,0 +1,6 @@
+[2022-11-22 18:07:56,560] INFO [GroupMetadataManager brokerId=0] Group spark-kafka-source-98294b4d-c6a3-4071-8d1d-e5a50ff5591e--918680653-driver-0 transitioned to Dead in generation 2 (kafka.coordinator.group.GroupMetadataManager)
+[2022-11-22 18:07:56,567] INFO [GroupMetadataManager brokerId=0] Group spark-kafka-source-4901157e-8a25-43d1-8d14-61cbf4319e84-603321626-driver-0 transitioned to Dead in generation 2 (kafka.coordinator.group.GroupMetadataManager)
+[2022-11-22 18:37:58,009] WARN Client session timed out, have not heard from server in 13970ms for session id 0x1000317916d0000 (org.apache.zookeeper.ClientCnxn)
+[2022-11-22 18:37:58,188] WARN Session 0x1000317916d0000 for sever localhost/127.0.0.1:2181, Closing socket connection. Attempting reconnect except it is a SessionExpiredException. (org.apache.zookeeper.ClientCnxn)
+org.apache.zookeeper.ClientCnxn$SessionTimeoutException: Client session timed out, have not heard from server in 13970ms for session id 0x1000317916d0000
+	at org.apache.zookeeper.ClientCnxn$SendThread.run(ClientCnxn.java:1258)
