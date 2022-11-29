@@ -1,6 +1,12 @@
 # AnalisiAutovelox
 Analisi Real Time di dati provenienti da autovelox tramite la libreria Structured Streaming di PySpark.
 
+**Tool Utilizzati**
+
+    - Apache PySpark (elaborazione in batch dei dati)
+    - Apache Kafka (per simulare l'arrivo real time dei dati)
+    - Apache Druid (Real time database)
+
 Riepilogo degli step eseguiti nel progetto:
 
 **DATA CLEANING**
