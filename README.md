@@ -1,7 +1,7 @@
 # AnalisiAutovelox
 Analisi Real Time di dati provenienti da autovelox tramite la libreria Structured Streaming di PySpark.
 
-Breve riepilogo di quanto fatto nel progetto:
+Riepilogo degli step eseguiti nel progetto:
 
 **DATA CLEANING**
 
