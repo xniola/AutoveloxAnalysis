@@ -45,9 +45,9 @@ Riepilogo degli step eseguiti nel progetto:
     0) my_producer.sh --> autovelox
     1) execute.sh (last_seen.py) --> ultimi-avvistamenti
     2) execute2.sh (vehicle_count.py) --> conteggio_veicoli
-    3) execute4.sh (df_aggregated.py) --> df_aggregated
-    4) execute5.sh (df_computed.py) --> dd1
-    5) execute6.sh (kmeans.py) --> kMeans
+    3) execute3.sh (df_aggregated.py) --> df_aggregated
+    4) execute4.sh (df_computed.py) --> dd1
+    5) execute5.sh (kmeans.py) --> kMeans
 
 **CATENA DIPENDENZE TOPIC**
 
