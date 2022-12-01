@@ -1,12 +1,6 @@
-
-import datetime
 from pyspark.sql import SparkSession
-from pyspark.sql.types import IntegerType, StringType, StructType, StructField, DoubleType
-from pyspark.sql.functions import concat, count,  col,  from_csv,  lit, count, mean, first
+from pyspark.sql.functions import concat,col,  from_csv,  lit, mean
 import pyspark.sql.functions as F
-from pyspark.ml.feature import VectorAssembler
-from pyspark.ml.clustering import KMeans
-
 
 spark = SparkSession \
     .builder \
@@ -25,9 +19,7 @@ dfstream = spark \
     .load()
 
 options = {'sep': ','}
-
-
-schema = "targa INT,ingresso INT, uscita INT, lunghezza DOUBLE, velocita DOUBLE, tempo_impiegato_min INT, velocita_media_per_tratto DOUBLE, tempo_medio_per_tratto_min DOUBLE"
+schema = "targa INT, ingresso INT, uscita INT, lunghezza DOUBLE, velocita DOUBLE, tempo_impiegato_min DOUBLE, velocita_media_per_tratto DOUBLE, tempo_medio_per_tratto_min DOUBLE"
 
 dfstream = dfstream.selectExpr("CAST(value AS STRING)") \
     .select(from_csv(col("value"), schema, options)
@@ -36,38 +28,30 @@ dfstream = dfstream.selectExpr("CAST(value AS STRING)") \
 
 
 
+df_clustering = dfstream.withColumn('prediction', 
+     F.when(col('velocita_media_per_tratto') <= 90, 1) \
+    .when((col('velocita_media_per_tratto') > 90) & (col('velocita_media_per_tratto') < 120), 2) \
+    .otherwise(3)) \
+    .groupBy('prediction').agg(mean('velocita_media_per_tratto').alias("velocita_media"), mean('tempo_medio_per_tratto_min').alias("tempo_medio_min"))
+
 
 def foreach_batch_id(df, epoch_id):
-    vecAssembler = VectorAssembler(inputCols=["velocita","tempo_impiegato_min","lunghezza"], outputCol="livello_pericolo")
-    new_df = vecAssembler.transform(df)
-
-    kmeans = KMeans(k=3, seed=1,featuresCol="livello_pericolo")  # 3 clusters
-    model = kmeans.fit(new_df.select(["livello_pericolo"]))
-            
-    transformed = model.transform(new_df)
-    transformed = transformed.groupBy('prediction').agg(mean('velocita'), mean('tempo_impiegato (min)'))
-
     df.withColumn("key", lit(str(epoch_id)))\
         .write \
         .format("kafka")\
         .option("kafka.bootstrap.servers", "localhost:9092")\
-        .option("topic", "kMeans") \
+        .option("topic", "clusterigno") \
         .save()
     pass
 
 
 # Output in Kafka
 print("\n\n\nStarting...\n\n\n")
-query = dfstream \
+query = df_clustering \
     .select(concat(
-        "targa", lit(","),
-        "ingresso", lit(","),
-        "uscita", lit(","),
-        "lunghezza", lit(","),
-        "velocita", lit(","),
-        "tempo_impiegato_min", lit(","),
-        "velocita_media_per_tratto",lit(","),
-        "tempo_medio_per_tratto_min").alias("value")) \
+        "prediction", lit(","),
+        "velocita_media", lit(","),
+        "tempo_medio_min")) \
     .writeStream \
     .foreachBatch(foreach_batch_id) \
     .outputMode("complete") \
