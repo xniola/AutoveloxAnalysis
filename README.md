@@ -6,6 +6,7 @@ Analisi Real Time di dati provenienti da autovelox tramite la libreria Structure
     - Apache PySpark (elaborazione in batch dei dati)
     - Apache Kafka (per simulare l'arrivo real time dei dati)
     - Apache Druid (Real time database)
+    - Apache Superset (Data visualization)
 
 Riepilogo degli step eseguiti nel progetto:
 
